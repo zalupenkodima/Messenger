@@ -77,17 +77,15 @@ public class UserSearchViewModel : BaseViewModel
 
         try
         {
-            _logger.LogInformation("Starting search for users with query: {Query}", SearchQuery);
             var users = await _messengerService.SearchUsersAsync(SearchQuery);
             
-            _logger.LogInformation("Search completed. Found {Count} users", users.Count());
-            
-            // Создаем новую коллекцию вместо изменения существующей
-            var newUsers = new ObservableCollection<UserDto>(users);
-            Users = newUsers;
+            Users.Clear();
+            foreach (var user in users)
+            {
+                Users.Add(user);
+            }
 
             StatusMessage = $"Найдено {users.Count()} пользователей";
-            _logger.LogInformation("Search results updated. Collection now contains {Count} users", Users.Count);
         }
         catch (Exception ex)
         {
@@ -100,41 +98,19 @@ public class UserSearchViewModel : BaseViewModel
         }
     }
 
-    private async void CreateChatWithSelectedUser()
+    private void CreateChatWithSelectedUser()
     {
         if (SelectedUser == null) return;
 
         try
         {
-            IsLoading = true;
-            StatusMessage = "Создание чата...";
-
-            var createChatDto = new CreateChatDto
-            {
-                Name = $"Чат с {SelectedUser.Username}",
-                Type = ChatType.Private,
-                MemberIds = new List<Guid> { SelectedUser.Id }
-            };
-
-            var chat = await _messengerService.CreateChatAsync(createChatDto);
-            
-            StatusMessage = $"Чат с {SelectedUser.Username} создан успешно";
-            MessageBox.Show($"Чат с пользователем {SelectedUser.Username} создан успешно!", 
-                "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                
-            // Возвращаемся на главную форму
-            _navigationService.ShowMainForm();
+            MessageBox.Show($"Создание чата с пользователем {SelectedUser.Username} - функция в разработке", 
+                "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create chat with user: {UserId}", SelectedUser.Id);
             StatusMessage = "Ошибка при создании чата";
-            MessageBox.Show($"Ошибка при создании чата: {ex.Message}", 
-                "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-        finally
-        {
-            IsLoading = false;
         }
     }
     
