@@ -10,4 +10,5 @@ public interface IMessageRepository : IRepository<Message>
     Task SoftDeleteMessageAsync(Guid messageId);
     Task UpdateMessageContentAsync(Guid messageId, string newContent);
     Task<int> GetUnreadCountAsync(Guid chatId, Guid userId);
+    Task<IEnumerable<Message>> GetMessagesOlderThanAsync(DateTime threshold);
 } 

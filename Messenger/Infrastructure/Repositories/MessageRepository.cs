@@ -61,13 +61,11 @@ public class MessageRepository(MessengerDbContext context) : BaseRepository<Mess
 
     public async Task<int> GetUnreadCountAsync(Guid chatId, Guid userId)
     {
-        // Получаем время последнего прочитанного сообщения для пользователя
         var chatMember = await _context.ChatMembers
             .FirstOrDefaultAsync(cm => cm.ChatId == chatId && cm.UserId == userId && cm.LeftAt == null);
 
         if (chatMember?.LastReadMessageAt == null)
         {
-            // Если пользователь еще не читал сообщения, считаем все сообщения за последние 7 дней
             return await _dbSet
                 .CountAsync(m => m.ChatId == chatId && 
                                 m.SenderId != userId && 
@@ -75,11 +73,19 @@ public class MessageRepository(MessengerDbContext context) : BaseRepository<Mess
                                 m.CreatedAt > DateTime.UtcNow.AddDays(-7));
         }
 
-        // Считаем сообщения, созданные после последнего прочитанного
         return await _dbSet
             .CountAsync(m => m.ChatId == chatId && 
                             m.SenderId != userId && 
                             !m.IsDeleted &&
                             m.CreatedAt > chatMember.LastReadMessageAt.Value);
+    }
+
+    public async Task<IEnumerable<Message>> GetMessagesOlderThanAsync(DateTime threshold)
+    {
+        return await _dbSet
+            .Include(m => m.Sender)
+            .Include(m => m.Chat)
+            .Where(m => m.CreatedAt < threshold && !m.IsDeleted)
+            .ToListAsync();
     }
 } 

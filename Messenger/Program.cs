@@ -11,6 +11,7 @@ using Messenger.Application.Interfaces;
 using Messenger.Domain.Interfaces;
 using Messenger.API.Hubs;
 using Microsoft.OpenApi.Models;
+using Messenger.Application.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,6 +59,12 @@ builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
+
+builder.Services.Configure<ImapNotificationSettings>(
+    builder.Configuration.GetSection("ImapNotifications"));
+
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddHostedService<UnreadMessageNotificationService>();
 
 builder.Services.AddSignalR();
 
